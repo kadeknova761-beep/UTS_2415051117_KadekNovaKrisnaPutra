@@ -54,4 +54,46 @@ class SavedRecipeService {
       throw const AppException('Tidak dapat terhubung ke database.');
     }
   }
+
+  /// Memperbarui catatan dan rating. Baris dicari lewat id; RLS memastikan
+  /// hanya baris milik pengguna yang bisa berubah.
+  Future<SavedRecipe> update(SavedRecipe recipe) async {
+    final id = recipe.id;
+    if (id == null) {
+      throw const AppException('Resep belum tersimpan di database.');
+    }
+    try {
+      final row = await _client
+          .from(_table)
+          .update(recipe.toUpdateJson())
+          .eq('id', id)
+          .select()
+          .single();
+      return SavedRecipe.fromJson(row);
+    } on PostgrestException catch (error) {
+      debugPrint(
+        'update gagal: code=${error.code} message=${error.message} '
+        'details=${error.details} hint=${error.hint}',
+      );
+      throw const AppException('Gagal memperbarui resep.');
+    } catch (error) {
+      debugPrint('update error lain: $error');
+      throw const AppException('Tidak dapat terhubung ke database.');
+    }
+  }
+
+  Future<void> delete(String id) async {
+    try {
+      await _client.from(_table).delete().eq('id', id);
+    } on PostgrestException catch (error) {
+      debugPrint(
+        'delete gagal: code=${error.code} message=${error.message} '
+        'details=${error.details} hint=${error.hint}',
+      );
+      throw const AppException('Gagal menghapus resep.');
+    } catch (error) {
+      debugPrint('delete error lain: $error');
+      throw const AppException('Tidak dapat terhubung ke database.');
+    }
+  }
 }

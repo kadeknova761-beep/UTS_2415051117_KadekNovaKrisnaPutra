@@ -5,10 +5,12 @@ import '../core/load_status.dart';
 import '../models/saved_recipe.dart';
 import '../providers/saved_recipe_provider.dart';
 import '../widgets/meal_image.dart';
+import '../widgets/save_recipe_sheet.dart';
 import '../widgets/state_view.dart';
 
 /// Koleksi resep tersimpan, datanya dari database (Supabase) lewat
-/// [SavedRecipeProvider].
+/// [SavedRecipeProvider]. Ketuk kartu untuk mengubah catatan dan rating,
+/// ikon tempat sampah untuk menghapus.
 class CollectionScreen extends StatelessWidget {
   const CollectionScreen({super.key});
 
@@ -45,18 +47,83 @@ class CollectionScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             itemCount: provider.items.length,
             separatorBuilder: (_, _) => const SizedBox(height: 8),
-            itemBuilder: (context, index) =>
-                _SavedTile(recipe: provider.items[index]),
+            itemBuilder: (context, index) {
+              final recipe = provider.items[index];
+              return _SavedTile(
+                recipe: recipe,
+                onEdit: () => _edit(context, recipe),
+                onDelete: () => _confirmDelete(context, recipe),
+              );
+            },
           ),
         );
     }
+  }
+
+  Future<void> _edit(BuildContext context, SavedRecipe recipe) async {
+    // Diambil sebelum await agar tidak memakai context setelah jeda async.
+    final provider = context.read<SavedRecipeProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final input = await SaveRecipeSheet.show(
+      context,
+      recipe.mealName,
+      title: 'Ubah catatan dan rating',
+      initialNote: recipe.note,
+      initialRating: recipe.rating,
+    );
+    if (input == null) return;
+
+    final error = await provider.update(
+      recipe,
+      note: input.note,
+      rating: input.rating,
+    );
+    messenger.showSnackBar(
+      SnackBar(content: Text(error ?? 'Perubahan disimpan.')),
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, SavedRecipe recipe) async {
+    final provider = context.read<SavedRecipeProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Hapus dari koleksi?'),
+        content: Text('"${recipe.mealName}" akan dihapus dari koleksimu.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final error = await provider.remove(recipe);
+    messenger.showSnackBar(
+      SnackBar(content: Text(error ?? 'Resep dihapus dari koleksi.')),
+    );
   }
 }
 
 class _SavedTile extends StatelessWidget {
   final SavedRecipe recipe;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
-  const _SavedTile({required this.recipe});
+  const _SavedTile({
+    required this.recipe,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +131,7 @@ class _SavedTile extends StatelessWidget {
 
     return Card(
       child: ListTile(
+        onTap: onEdit,
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: SizedBox(
@@ -74,16 +142,21 @@ class _SavedTile extends StatelessWidget {
         ),
         title: Text(recipe.mealName),
         subtitle: recipe.note.isEmpty ? null : Text(recipe.note),
-        trailing: rating == null
-            ? null
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.star, size: 18),
-                  const SizedBox(width: 2),
-                  Text('$rating'),
-                ],
-              ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (rating != null) ...[
+              const Icon(Icons.star, size: 18),
+              const SizedBox(width: 2),
+              Text('$rating'),
+            ],
+            IconButton(
+              tooltip: 'Hapus dari koleksi',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: onDelete,
+            ),
+          ],
+        ),
       ),
     );
   }

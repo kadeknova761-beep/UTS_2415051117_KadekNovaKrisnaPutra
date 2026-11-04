@@ -33,9 +33,7 @@ class SavedRecipeProvider extends ChangeNotifier {
       _items = result;
       _status = result.isEmpty ? LoadStatus.empty : LoadStatus.success;
     } on Exception catch (e) {
-      _error = e is AppException
-          ? e.message
-          : 'Terjadi kesalahan. Silakan coba lagi.';
+      _error = _messageOf(e);
       _status = LoadStatus.error;
     }
     _notify();
@@ -59,11 +57,49 @@ class SavedRecipeProvider extends ChangeNotifier {
       _notify();
       return null;
     } on Exception catch (e) {
-      return e is AppException
-          ? e.message
-          : 'Terjadi kesalahan. Silakan coba lagi.';
+      return _messageOf(e);
     }
   }
+
+  /// Mengubah catatan dan rating. Mengembalikan null bila sukses,
+  /// atau pesan error yang siap ditampilkan.
+  Future<String?> update(
+    SavedRecipe recipe, {
+    required String note,
+    int? rating,
+  }) async {
+    try {
+      final updated = await _repository.update(
+        recipe.copyWith(note: note, rating: rating),
+      );
+      _items = [
+        for (final item in _items) item.id == updated.id ? updated : item,
+      ];
+      _notify();
+      return null;
+    } on Exception catch (e) {
+      return _messageOf(e);
+    }
+  }
+
+  /// Menghapus resep dari koleksi. Mengembalikan null bila sukses,
+  /// atau pesan error yang siap ditampilkan.
+  Future<String?> remove(SavedRecipe recipe) async {
+    final id = recipe.id;
+    if (id == null) return 'Resep belum tersimpan di database.';
+    try {
+      await _repository.remove(id);
+      _items = _items.where((item) => item.id != id).toList();
+      _status = _items.isEmpty ? LoadStatus.empty : LoadStatus.success;
+      _notify();
+      return null;
+    } on Exception catch (e) {
+      return _messageOf(e);
+    }
+  }
+
+  String _messageOf(Exception e) =>
+      e is AppException ? e.message : 'Terjadi kesalahan. Silakan coba lagi.';
 
   void _notify() {
     if (!_disposed) notifyListeners();

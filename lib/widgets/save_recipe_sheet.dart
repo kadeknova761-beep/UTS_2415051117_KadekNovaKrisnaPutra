@@ -10,20 +10,42 @@ class SaveRecipeInput {
   const SaveRecipeInput({required this.note, required this.rating});
 }
 
-/// Bottom sheet berisi form catatan dan rating untuk menyimpan resep.
+/// Bottom sheet berisi form catatan dan rating.
+/// Dipakai untuk menyimpan resep baru dan untuk mengubah resep tersimpan
+/// (lewat [initialNote], [initialRating], dan [title]).
 /// Mengembalikan [SaveRecipeInput], atau null bila dibatalkan.
 class SaveRecipeSheet extends StatefulWidget {
   final String mealName;
+  final String title;
+  final String initialNote;
+  final int? initialRating;
 
-  const SaveRecipeSheet({super.key, required this.mealName});
+  const SaveRecipeSheet({
+    super.key,
+    required this.mealName,
+    this.title = 'Simpan ke koleksi',
+    this.initialNote = '',
+    this.initialRating,
+  });
 
-  static Future<SaveRecipeInput?> show(BuildContext context, String mealName) {
+  static Future<SaveRecipeInput?> show(
+    BuildContext context,
+    String mealName, {
+    String title = 'Simpan ke koleksi',
+    String initialNote = '',
+    int? initialRating,
+  }) {
     return showModalBottomSheet<SaveRecipeInput>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       constraints: const BoxConstraints(maxWidth: 560),
-      builder: (_) => SaveRecipeSheet(mealName: mealName),
+      builder: (_) => SaveRecipeSheet(
+        mealName: mealName,
+        title: title,
+        initialNote: initialNote,
+        initialRating: initialRating,
+      ),
     );
   }
 
@@ -33,8 +55,14 @@ class SaveRecipeSheet extends StatefulWidget {
 
 class _SaveRecipeSheetState extends State<SaveRecipeSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _noteController = TextEditingController();
+  late final TextEditingController _noteController;
   int? _rating;
+
+  @override
+  void initState() {
+    super.initState();
+    _noteController = TextEditingController(text: widget.initialNote);
+  }
 
   @override
   void dispose() {
@@ -69,7 +97,7 @@ class _SaveRecipeSheetState extends State<SaveRecipeSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Simpan ke koleksi', style: theme.textTheme.titleLarge),
+            Text(widget.title, style: theme.textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(widget.mealName, style: theme.textTheme.bodyMedium),
             const SizedBox(height: 16),
@@ -86,6 +114,7 @@ class _SaveRecipeSheetState extends State<SaveRecipeSheet> {
             const SizedBox(height: 16),
             Text('Rating', style: theme.textTheme.titleMedium),
             FormField<int>(
+              initialValue: widget.initialRating,
               validator: Validators.rating,
               onSaved: (value) => _rating = value,
               builder: (field) {
