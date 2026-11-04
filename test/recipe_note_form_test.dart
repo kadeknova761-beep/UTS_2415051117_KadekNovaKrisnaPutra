@@ -1,35 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:resepku/widgets/save_recipe_sheet.dart';
+import 'package:resepku/widgets/recipe_note_form.dart';
 
-Future<void> _openSheet(
+Future<void> _pumpForm(
   WidgetTester tester,
-  void Function(SaveRecipeInput?) onResult,
+  void Function(SaveRecipeInput) onSubmit,
 ) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: Builder(
-          builder: (context) => Center(
-            child: ElevatedButton(
-              onPressed: () async {
-                onResult(await SaveRecipeSheet.show(context, 'Nasi Goreng'));
-              },
-              child: const Text('Buka'),
-            ),
-          ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: RecipeNoteForm(mealName: 'Nasi Goreng', onSubmit: onSubmit),
         ),
       ),
     ),
   );
-  await tester.tap(find.text('Buka'));
-  await tester.pumpAndSettle();
 }
 
 void main() {
   testWidgets('submit tanpa rating menampilkan pesan error', (tester) async {
     SaveRecipeInput? result;
-    await _openSheet(tester, (value) => result = value);
+    await _pumpForm(tester, (value) => result = value);
 
     await tester.tap(find.text('Simpan'));
     await tester.pump();
@@ -39,7 +31,7 @@ void main() {
   });
 
   testWidgets('catatan lebih dari 200 karakter ditolak', (tester) async {
-    await _openSheet(tester, (_) {});
+    await _pumpForm(tester, (_) {});
 
     await tester.tap(find.byTooltip('Rating 3'));
     await tester.enterText(find.byType(TextFormField), 'a' * 201);
@@ -51,15 +43,35 @@ void main() {
 
   testWidgets('input valid mengembalikan catatan dan rating', (tester) async {
     SaveRecipeInput? result;
-    await _openSheet(tester, (value) => result = value);
+    await _pumpForm(tester, (value) => result = value);
 
     await tester.tap(find.byTooltip('Rating 4'));
     await tester.enterText(find.byType(TextFormField), '  Enak sekali  ');
     await tester.tap(find.text('Simpan'));
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(result, isNotNull);
     expect(result!.rating, 4);
     expect(result!.note, 'Enak sekali');
+  });
+
+  testWidgets('nilai awal terisi saat mode edit', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: RecipeNoteForm(
+              mealName: 'Nasi Goreng',
+              initialNote: 'Catatan lama',
+              initialRating: 3,
+              onSubmit: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Catatan lama'), findsOneWidget);
+    expect(find.byIcon(Icons.star), findsNWidgets(3));
   });
 }

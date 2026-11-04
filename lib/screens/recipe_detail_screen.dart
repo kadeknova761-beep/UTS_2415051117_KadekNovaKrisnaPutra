@@ -7,8 +7,8 @@ import '../models/meal.dart';
 import '../providers/recipe_detail_provider.dart';
 import '../providers/saved_recipe_provider.dart';
 import '../widgets/meal_image.dart';
-import '../widgets/save_recipe_sheet.dart';
 import '../widgets/state_view.dart';
+import 'recipe_note_screen.dart';
 
 /// Detail satu resep.
 ///
@@ -39,9 +39,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     });
   }
 
-  /// Membuka form catatan dan rating, lalu menyimpan bila dikonfirmasi.
+  /// Membuka screen form catatan dan rating, lalu menyimpan bila dikonfirmasi.
   Future<void> _save(Meal meal) async {
-    final input = await SaveRecipeSheet.show(context, meal.name);
+    final input = await RecipeNoteScreen.open(context, meal.name);
     if (input == null || !mounted) return;
 
     final error = await context.read<SavedRecipeProvider>().save(

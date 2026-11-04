@@ -5,8 +5,8 @@ import '../core/load_status.dart';
 import '../models/saved_recipe.dart';
 import '../providers/saved_recipe_provider.dart';
 import '../widgets/meal_image.dart';
-import '../widgets/save_recipe_sheet.dart';
 import '../widgets/state_view.dart';
+import 'recipe_note_screen.dart';
 
 /// Koleksi resep tersimpan, datanya dari database (Supabase) lewat
 /// [SavedRecipeProvider]. Ketuk kartu untuk mengubah catatan dan rating,
@@ -65,7 +65,7 @@ class CollectionScreen extends StatelessWidget {
     final provider = context.read<SavedRecipeProvider>();
     final messenger = ScaffoldMessenger.of(context);
 
-    final input = await SaveRecipeSheet.show(
+    final input = await RecipeNoteScreen.open(
       context,
       recipe.mealName,
       title: 'Ubah catatan dan rating',
