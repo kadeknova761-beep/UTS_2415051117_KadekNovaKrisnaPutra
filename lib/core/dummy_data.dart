@@ -1,0 +1,58 @@
+import '../models/meal.dart';
+import '../models/meal_category.dart';
+
+// DATA SEMENTARA untuk membangun UI.
+// File ini dihapus saat REST API diintegrasikan (commit berikutnya).
+
+const List<MealCategory> dummyCategories = [
+  MealCategory(id: '1', name: 'Beef', thumbnailUrl: '', description: ''),
+  MealCategory(id: '2', name: 'Chicken', thumbnailUrl: '', description: ''),
+  MealCategory(id: '3', name: 'Seafood', thumbnailUrl: '', description: ''),
+  MealCategory(id: '4', name: 'Vegetarian', thumbnailUrl: '', description: ''),
+  MealCategory(id: '5', name: 'Dessert', thumbnailUrl: '', description: ''),
+];
+
+const List<Meal> dummyMeals = [
+  Meal(
+    id: '1',
+    name: 'Nasi Goreng Kampung',
+    thumbnailUrl: '',
+    category: 'Chicken',
+    area: 'Indonesian',
+  ),
+  Meal(
+    id: '2',
+    name: 'Beef Rendang',
+    thumbnailUrl: '',
+    category: 'Beef',
+    area: 'Malaysian',
+  ),
+  Meal(
+    id: '3',
+    name: 'Grilled Fish with Lemon and Herbs',
+    thumbnailUrl: '',
+    category: 'Seafood',
+    area: 'Mediterranean',
+  ),
+  Meal(
+    id: '4',
+    name: 'Vegetable Curry',
+    thumbnailUrl: '',
+    category: 'Vegetarian',
+    area: 'Indian',
+  ),
+  Meal(
+    id: '5',
+    name: 'Chocolate Lava Cake',
+    thumbnailUrl: '',
+    category: 'Dessert',
+    area: 'French',
+  ),
+  Meal(
+    id: '6',
+    name: 'Chicken Satay',
+    thumbnailUrl: '',
+    category: 'Chicken',
+    area: 'Indonesian',
+  ),
+];
