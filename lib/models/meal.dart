@@ -34,18 +34,40 @@ class Meal {
     this.ingredients = const [],
   });
 
+  /// Awalan "Step 3", "STEP 1:", dan sejenisnya.
+  static final RegExp _stepPrefix = RegExp(
+    r'^step\s*\d+\s*[.):\-]?\s*',
+    caseSensitive: false,
+  );
+
+  /// Awalan "1." atau "2)" yang diikuti spasi. Angka yang menempel pada
+  /// kalimat ("1.5 cangkir", "2 sendok") tidak ikut terpotong.
+  static final RegExp _numberPrefix = RegExp(r'^\d+\s*[.)]\s+');
+
+  /// Baris yang isinya hanya nomor, misalnya "1" atau "2.".
+  static final RegExp _numberOnly = RegExp(r'^\d+\s*[.)]?$');
+
   /// True jika data ini berasal dari endpoint lookup (detail lengkap).
   bool get hasDetail => instructions != null;
 
   /// Langkah memasak, dipecah per baris dari teks instruksi.
+  /// Penomoran bawaan teks dibuang karena layar detail menomori sendiri.
   List<String> get steps {
     final text = instructions;
     if (text == null) return const [];
     return text
         .split(RegExp(r'\r?\n'))
-        .map((line) => line.trim())
-        .where((line) => line.isNotEmpty)
+        .map(_cleanStep)
+        .where((line) => line.isNotEmpty && !_numberOnly.hasMatch(line))
         .toList();
+  }
+
+  static String _cleanStep(String line) {
+    return line
+        .trim()
+        .replaceFirst(_stepPrefix, '')
+        .replaceFirst(_numberPrefix, '')
+        .trim();
   }
 
   factory Meal.fromJson(Map<String, dynamic> json) {
