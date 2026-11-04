@@ -5,6 +5,7 @@ import '../core/breakpoints.dart';
 import '../core/load_status.dart';
 import '../models/meal.dart';
 import '../providers/recipe_detail_provider.dart';
+import '../providers/saved_recipe_provider.dart';
 import '../widgets/meal_image.dart';
 import '../widgets/state_view.dart';
 
@@ -37,6 +38,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     });
   }
 
+  Future<void> _save(Meal meal) async {
+    final error = await context.read<SavedRecipeProvider>().save(meal);
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error ?? 'Tersimpan di koleksi.')));
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<RecipeDetailProvider>();
@@ -45,7 +54,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final meal = provider.detailOf(id) ?? widget.meal;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail resep')),
+      appBar: AppBar(
+        title: const Text('Detail resep'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_add_outlined),
+            tooltip: 'Simpan ke koleksi',
+            onPressed: () => _save(meal),
+          ),
+        ],
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final expanded = Breakpoints.isExpanded(constraints.maxWidth);

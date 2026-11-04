@@ -1,24 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/app_theme.dart';
+import 'core/supabase_config.dart';
 import 'providers/recipe_detail_provider.dart';
 import 'providers/recipe_provider.dart';
+import 'providers/saved_recipe_provider.dart';
+import 'repositories/fake_saved_recipe_repository.dart';
 import 'repositories/meal_repository.dart';
 import 'repositories/meal_repository_impl.dart';
+import 'repositories/saved_recipe_repository.dart';
+import 'repositories/saved_recipe_repository_impl.dart';
 import 'screens/app_shell.dart';
 import 'services/meal_api_service.dart';
+import 'services/saved_recipe_service.dart';
 
-void main() {
-  runApp(const ResepKuApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SupabaseConfig.initialize();
+  runApp(
+    ResepKuApp(
+      savedRecipeRepository: SavedRecipeRepositoryImpl(
+        SavedRecipeService(Supabase.instance.client),
+      ),
+    ),
+  );
 }
 
 class ResepKuApp extends StatelessWidget {
-  /// Sumber data. Bila null, aplikasi memakai REST API TheMealDB.
+  /// Sumber data katalog. Bila null, aplikasi memakai REST API TheMealDB.
   /// Diisi repository lain saat pengujian (misalnya FakeMealRepository).
   final MealRepository? repository;
 
-  const ResepKuApp({super.key, this.repository});
+  /// Sumber data koleksi. Bila null (misalnya di tes), dipakai versi
+  /// in-memory sehingga tes tidak butuh Supabase.
+  final SavedRecipeRepository? savedRecipeRepository;
+
+  const ResepKuApp({super.key, this.repository, this.savedRecipeRepository});
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +56,11 @@ class ResepKuApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) =>
               RecipeDetailProvider(context.read<MealRepository>()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SavedRecipeProvider(
+            savedRecipeRepository ?? FakeSavedRecipeRepository(),
+          )..load(),
         ),
       ],
       child: MaterialApp(

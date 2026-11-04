@@ -35,9 +35,8 @@ void main() {
   });
 
   group('SavedRecipe', () {
-    test('toInsertJson tidak memuat id dan created_at', () {
+    test('toInsertJson tidak memuat id, user_id, dan created_at', () {
       const saved = SavedRecipe(
-        studentId: '2415051117',
         mealId: '1',
         mealName: 'Nasi Goreng',
         rating: 5,
@@ -45,8 +44,26 @@ void main() {
       final json = saved.toInsertJson();
 
       expect(json.containsKey('id'), false);
+      expect(json.containsKey('user_id'), false);
       expect(json.containsKey('created_at'), false);
       expect(json['rating'], 5);
+    });
+
+    test('fromJson membaca kolom tabel saved_recipes', () {
+      final saved = SavedRecipe.fromJson({
+        'id': 'abc-123',
+        'meal_id': '1',
+        'meal_name': 'Nasi Goreng',
+        'meal_thumb': null,
+        'note': null,
+        'rating': 4,
+        'created_at': '2026-11-04T10:00:00Z',
+      });
+
+      expect(saved.id, 'abc-123');
+      expect(saved.note, '');
+      expect(saved.rating, 4);
+      expect(saved.createdAt, isNotNull);
     });
   });
 }

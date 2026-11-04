@@ -46,3 +46,8 @@ app.*.map.json
 key.properties
 google-services.json
 secrets.json
+# Rahasia dan konfigurasi lokal (jangan di-commit)
+.env
+.env.*
+!.env.example
+
