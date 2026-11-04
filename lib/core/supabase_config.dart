@@ -6,7 +6,7 @@ import 'exceptions.dart';
 /// Konfigurasi dan inisialisasi Supabase.
 ///
 /// URL dan kunci dibaca dari file `.env` (tidak di-commit). Hanya kunci
-/// publishable/anon yang dipakai; kunci secret atau service_role tidak
+/// publishable/anon yang dipakai; kunci secret (rahasia) tidak
 /// boleh ada di aplikasi.
 class SupabaseConfig {
   const SupabaseConfig._();
