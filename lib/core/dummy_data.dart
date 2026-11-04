@@ -1,8 +1,8 @@
 import '../models/meal.dart';
 import '../models/meal_category.dart';
 
-// DATA SEMENTARA untuk membangun UI.
-// File ini dihapus saat REST API diintegrasikan.
+// Data contoh untuk FakeMealRepository (pengujian dan pengembangan offline).
+// Aplikasi sungguhan memakai MealRepositoryImpl (REST API TheMealDB).
 
 const List<MealCategory> dummyCategories = [
   MealCategory(id: '1', name: 'Beef', thumbnailUrl: '', description: ''),

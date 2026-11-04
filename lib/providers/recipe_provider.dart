@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../core/exceptions.dart';
@@ -11,9 +13,15 @@ import '../repositories/meal_repository.dart';
 /// Filter (kategori dan kata kunci) adalah shared state: Home dan List
 /// membaca dan mengubah nilai yang sama.
 class RecipeProvider extends ChangeNotifier {
-  RecipeProvider(this._repository);
+  RecipeProvider(
+    this._repository, {
+    this.searchDebounce = const Duration(milliseconds: 450),
+  });
 
   final MealRepository _repository;
+
+  /// Jeda setelah pengguna berhenti mengetik sebelum pencarian dikirim.
+  final Duration searchDebounce;
 
   // Kategori
   LoadStatus _categoriesStatus = LoadStatus.initial;
@@ -34,6 +42,7 @@ class RecipeProvider extends ChangeNotifier {
 
   // Penanda permintaan terbaru agar hasil lama tidak menimpa hasil baru.
   int _mealsRequestId = 0;
+  Timer? _searchTimer;
   bool _disposed = false;
 
   LoadStatus get categoriesStatus => _categoriesStatus;
@@ -120,20 +129,38 @@ class RecipeProvider extends ChangeNotifier {
 
   /// Memilih kategori (atau null untuk melepas). Mengosongkan kata kunci.
   Future<void> selectCategory(String? name) {
+    _searchTimer?.cancel();
     _selectedCategory = name;
     _query = '';
     return loadMeals();
   }
 
-  /// Mencari berdasarkan nama. Melepas kategori yang dipilih.
+  /// Mencari berdasarkan nama, langsung tanpa jeda. Melepas kategori.
   Future<void> search(String query) {
+    _searchTimer?.cancel();
     _query = query;
     _selectedCategory = null;
     return loadMeals();
   }
 
+  /// Dipanggil setiap pengguna mengetik di kolom cari.
+  ///
+  /// Kata kunci dan filter diperbarui seketika agar UI tetap sinkron,
+  /// tetapi permintaan ke API baru dikirim setelah [searchDebounce] tanpa
+  /// ketikan baru. Ini mencegah satu permintaan per huruf.
+  void onSearchChanged(String query) {
+    _searchTimer?.cancel();
+    _query = query;
+    _selectedCategory = null;
+    _notify();
+    _searchTimer = Timer(searchDebounce, () {
+      loadMeals();
+    });
+  }
+
   /// Menghapus semua filter dan memuat ulang katalog penuh.
   Future<void> clearFilters() async {
+    _searchTimer?.cancel();
     final hasFilter = _selectedCategory != null || _query.isNotEmpty;
     if (!hasFilter && _mealsStatus == LoadStatus.success) return;
 
@@ -154,6 +181,7 @@ class RecipeProvider extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _searchTimer?.cancel();
     super.dispose();
   }
 }

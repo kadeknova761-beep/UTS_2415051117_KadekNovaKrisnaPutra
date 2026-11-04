@@ -72,7 +72,7 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
             child: TextField(
               controller: _searchController,
               onChanged: (value) {
-                _provider.search(value);
+                _provider.onSearchChanged(value);
               },
               decoration: InputDecoration(
                 hintText: 'Cari resep...',
