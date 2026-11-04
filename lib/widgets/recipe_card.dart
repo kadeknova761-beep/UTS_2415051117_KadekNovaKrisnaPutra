@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/meal.dart';
+import 'meal_image.dart';
 
 /// Kartu resep yang dipakai di Home dan List (reusable widget #1).
 class RecipeCard extends StatelessWidget {
@@ -30,7 +31,7 @@ class RecipeCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  _buildImage(theme.colorScheme),
+                  MealImage(url: meal.thumbnailUrl),
                   if (isSaved)
                     const Positioned(
                       top: 8,
@@ -76,26 +77,6 @@ class RecipeCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildImage(ColorScheme scheme) {
-    final placeholder = Container(
-      color: scheme.surfaceContainerHighest,
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.restaurant_menu,
-        size: 40,
-        color: scheme.onSurfaceVariant,
-      ),
-    );
-
-    if (meal.thumbnailUrl.isEmpty) return placeholder;
-
-    return Image.network(
-      meal.thumbnailUrl,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => placeholder,
     );
   }
 }

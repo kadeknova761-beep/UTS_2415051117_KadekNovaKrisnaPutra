@@ -5,6 +5,7 @@ import '../core/dummy_data.dart';
 import '../models/meal.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/state_view.dart';
+import 'recipe_detail_screen.dart';
 
 /// Daftar resep dalam bentuk grid responsif. Sementara memakai data dummy.
 class RecipeListScreen extends StatelessWidget {
@@ -16,6 +17,12 @@ class RecipeListScreen extends StatelessWidget {
     required this.title,
     this.meals = dummyMeals,
   });
+
+  void _openDetail(BuildContext context, Meal meal) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => RecipeDetailScreen(meal: meal)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +47,11 @@ class RecipeListScreen extends StatelessWidget {
                   ),
                   itemCount: meals.length,
                   itemBuilder: (context, index) {
-                    return RecipeCard(meal: meals[index]);
+                    final meal = meals[index];
+                    return RecipeCard(
+                      meal: meal,
+                      onTap: () => _openDetail(context, meal),
+                    );
                   },
                 );
               },

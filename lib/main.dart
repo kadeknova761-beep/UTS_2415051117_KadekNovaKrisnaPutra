@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/app_theme.dart';
-import 'screens/home_screen.dart';
+import 'screens/app_shell.dart';
 
 void main() {
   runApp(const ResepKuApp());
@@ -16,7 +16,7 @@ class ResepKuApp extends StatelessWidget {
       title: 'ResepKu',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      home: const HomeScreen(),
+      home: const AppShell(),
     );
   }
 }

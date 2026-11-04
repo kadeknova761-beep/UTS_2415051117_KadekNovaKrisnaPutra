@@ -2,7 +2,7 @@ import '../models/meal.dart';
 import '../models/meal_category.dart';
 
 // DATA SEMENTARA untuk membangun UI.
-// File ini dihapus saat REST API diintegrasikan (commit berikutnya).
+// File ini dihapus saat REST API diintegrasikan.
 
 const List<MealCategory> dummyCategories = [
   MealCategory(id: '1', name: 'Beef', thumbnailUrl: '', description: ''),
@@ -19,6 +19,16 @@ const List<Meal> dummyMeals = [
     thumbnailUrl: '',
     category: 'Chicken',
     area: 'Indonesian',
+    instructions:
+        'Panaskan minyak di wajan.\n'
+        'Tumis bawang hingga harum.\n'
+        'Masukkan nasi dan bumbu, aduk rata.\n'
+        'Sajikan selagi hangat.',
+    ingredients: [
+      MealIngredient(name: 'Nasi putih', measure: '2 piring'),
+      MealIngredient(name: 'Bawang merah', measure: '3 siung'),
+      MealIngredient(name: 'Kecap manis', measure: '2 sdm'),
+    ],
   ),
   Meal(
     id: '2',
@@ -26,6 +36,15 @@ const List<Meal> dummyMeals = [
     thumbnailUrl: '',
     category: 'Beef',
     area: 'Malaysian',
+    instructions:
+        'Haluskan semua bumbu.\n'
+        'Masak daging bersama bumbu dan santan.\n'
+        'Aduk perlahan hingga kuah mengering.',
+    ingredients: [
+      MealIngredient(name: 'Daging sapi', measure: '500 g'),
+      MealIngredient(name: 'Santan', measure: '400 ml'),
+      MealIngredient(name: 'Serai', measure: '2 batang'),
+    ],
   ),
   Meal(
     id: '3',

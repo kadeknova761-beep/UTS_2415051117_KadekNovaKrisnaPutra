@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../core/breakpoints.dart';
 import '../core/dummy_data.dart';
+import '../models/meal.dart';
 import '../widgets/recipe_card.dart';
+import 'recipe_detail_screen.dart';
 import 'recipe_list_screen.dart';
 
 /// Beranda: pencarian cepat, kategori, dan rekomendasi resep.
@@ -18,6 +20,12 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => RecipeListScreen(title: title)));
+  }
+
+  void _openDetail(BuildContext context, Meal meal) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => RecipeDetailScreen(meal: meal)));
   }
 
   @override
@@ -73,9 +81,9 @@ class HomeScreen extends StatelessWidget {
                   Text('Rekomendasi', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 12),
                   if (expanded)
-                    _buildRecommendationGrid(columns)
+                    _buildRecommendationGrid(context, columns)
                   else
-                    _buildRecommendationRow(),
+                    _buildRecommendationRow(context),
                 ],
               ),
             ),
@@ -86,7 +94,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   /// Layout compact: daftar geser horizontal.
-  Widget _buildRecommendationRow() {
+  Widget _buildRecommendationRow(BuildContext context) {
     return SizedBox(
       height: 230,
       child: ListView.separated(
@@ -94,9 +102,13 @@ class HomeScreen extends StatelessWidget {
         itemCount: dummyMeals.length,
         separatorBuilder: (_, _) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
+          final meal = dummyMeals[index];
           return SizedBox(
             width: 170,
-            child: RecipeCard(meal: dummyMeals[index]),
+            child: RecipeCard(
+              meal: meal,
+              onTap: () => _openDetail(context, meal),
+            ),
           );
         },
       ),
@@ -104,7 +116,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   /// Layout expanded: grid di dalam ListView induk (tidak scroll sendiri).
-  Widget _buildRecommendationGrid(int columns) {
+  Widget _buildRecommendationGrid(BuildContext context, int columns) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -116,7 +128,8 @@ class HomeScreen extends StatelessWidget {
       ),
       itemCount: dummyMeals.length,
       itemBuilder: (context, index) {
-        return RecipeCard(meal: dummyMeals[index]);
+        final meal = dummyMeals[index];
+        return RecipeCard(meal: meal, onTap: () => _openDetail(context, meal));
       },
     );
   }
