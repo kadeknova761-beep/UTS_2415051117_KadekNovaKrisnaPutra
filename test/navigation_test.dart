@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:resepku/main.dart';
+import 'package:resepku/repositories/fake_meal_repository.dart';
 import 'package:resepku/screens/recipe_detail_screen.dart';
+
+const _repository = FakeMealRepository(delay: Duration.zero);
 
 void main() {
   Future<void> setScreen(WidgetTester tester, double width) async {
@@ -22,13 +25,14 @@ void main() {
     tester,
   ) async {
     await setScreen(tester, 400);
-    await tester.pumpWidget(const ResepKuApp());
+    await tester.pumpWidget(const ResepKuApp(repository: _repository));
+    await tester.pumpAndSettle();
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(NavigationRail), findsNothing);
 
     await setScreen(tester, 1200);
-    await tester.pumpWidget(const ResepKuApp());
-    await tester.pump();
+    await tester.pumpWidget(const ResepKuApp(repository: _repository));
+    await tester.pumpAndSettle();
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.byType(NavigationRail), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -36,7 +40,8 @@ void main() {
 
   testWidgets('berpindah tab lewat navigasi utama', (tester) async {
     await setScreen(tester, 400);
-    await tester.pumpWidget(const ResepKuApp());
+    await tester.pumpWidget(const ResepKuApp(repository: _repository));
+    await tester.pumpAndSettle();
 
     await tester.tap(navLabel('Profil'));
     await tester.pumpAndSettle();
@@ -50,7 +55,8 @@ void main() {
 
   testWidgets('list ke detail membawa data resep', (tester) async {
     await setScreen(tester, 400);
-    await tester.pumpWidget(const ResepKuApp());
+    await tester.pumpWidget(const ResepKuApp(repository: _repository));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Nasi Goreng Kampung'));
     await tester.pumpAndSettle();
