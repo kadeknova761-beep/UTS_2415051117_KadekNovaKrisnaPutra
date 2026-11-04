@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'core/app_theme.dart';
+import 'providers/recipe_detail_provider.dart';
 import 'providers/recipe_provider.dart';
 import 'repositories/meal_repository.dart';
 import 'repositories/meal_repository_impl.dart';
@@ -23,10 +24,21 @@ class ResepKuApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Provider ditaruh di atas MaterialApp agar semua route, termasuk
     // halaman yang dibuka lewat Navigator.push, bisa mengaksesnya.
-    return ChangeNotifierProvider(
-      create: (_) =>
-          RecipeProvider(repository ?? MealRepositoryImpl(MealApiService()))
-            ..init(),
+    // Repository didaftarkan sekali lalu dibagi ke semua provider data.
+    return MultiProvider(
+      providers: [
+        Provider<MealRepository>(
+          create: (_) => repository ?? MealRepositoryImpl(MealApiService()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              RecipeProvider(context.read<MealRepository>())..init(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              RecipeDetailProvider(context.read<MealRepository>()),
+        ),
+      ],
       child: MaterialApp(
         title: 'ResepKu',
         debugShowCheckedModeBanner: false,
