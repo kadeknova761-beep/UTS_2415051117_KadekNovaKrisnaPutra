@@ -52,19 +52,20 @@ void main() {
     }
   });
 
-  testWidgets('Home: compact memakai daftar, wide memakai grid', (
-    tester,
-  ) async {
-    await setScreen(tester, 400);
-    await tester.pumpWidget(const ResepKuApp(repository: _repository));
-    await tester.pumpAndSettle();
-    expect(find.byType(GridView), findsNothing);
-    expect(tester.takeException(), isNull);
+  testWidgets(
+    'Home: grid rekomendasi 2 kolom di compact, lebih banyak di wide',
+    (tester) async {
+      await setScreen(tester, 400);
+      await tester.pumpWidget(const ResepKuApp(repository: _repository));
+      await tester.pumpAndSettle();
+      expect(columnsOf(tester), 2);
+      expect(tester.takeException(), isNull);
 
-    await setScreen(tester, 1200);
-    await tester.pumpWidget(const ResepKuApp(repository: _repository));
-    await tester.pumpAndSettle();
-    expect(find.byType(GridView), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      await setScreen(tester, 1200);
+      await tester.pumpWidget(const ResepKuApp(repository: _repository));
+      await tester.pumpAndSettle();
+      expect(columnsOf(tester), greaterThanOrEqualTo(3));
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_theme.dart';
 import '../core/breakpoints.dart';
 import '../core/load_status.dart';
 import '../models/meal.dart';
 import '../providers/recipe_provider.dart';
+import '../widgets/category_chip.dart';
+import '../widgets/featured_recipe_banner.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/state_view.dart';
 import 'recipe_detail_screen.dart';
 import 'recipe_list_screen.dart';
 
-/// Beranda: pencarian cepat, kategori, dan rekomendasi resep.
+/// Beranda: pencarian cepat, resep unggulan, kategori, dan rekomendasi.
 ///
-/// Compact : rekomendasi berupa daftar geser horizontal.
-/// Expanded: rekomendasi berupa grid, isi dibatasi lebar maksimum.
+/// Grid rekomendasi berubah jumlah kolomnya menurut lebar layar,
+/// dan isi dibatasi lebar maksimum di layar lebar.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -39,7 +42,7 @@ class HomeScreen extends StatelessWidget {
     final provider = context.watch<RecipeProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('ResepKu')),
+      appBar: AppBar(title: const _BrandTitle()),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final expanded = Breakpoints.isExpanded(constraints.maxWidth);
@@ -50,7 +53,7 @@ class HomeScreen extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: _maxContentWidth),
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 children: [
                   Text(
                     'Mau masak apa hari ini?',
@@ -68,14 +71,32 @@ class HomeScreen extends StatelessWidget {
                       prefixIcon: Icon(Icons.search),
                     ),
                   ),
+                  const SizedBox(height: 20),
+                  _buildFeatured(context, provider, expanded),
                   const SizedBox(height: 24),
                   Text('Kategori', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 12),
                   _buildCategories(context, provider),
                   const SizedBox(height: 24),
-                  Text('Rekomendasi', style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 12),
-                  _buildRecommendations(context, provider, expanded, columns),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Rekomendasi',
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          provider.clearFilters();
+                          _openList(context);
+                        },
+                        child: const Text('Lihat semua'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  _buildRecommendations(context, provider, columns),
                 ],
               ),
             ),
@@ -85,12 +106,44 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  /// Banner resep unggulan: resep pertama dari daftar rekomendasi.
+  Widget _buildFeatured(
+    BuildContext context,
+    RecipeProvider provider,
+    bool expanded,
+  ) {
+    switch (provider.recommendationsStatus) {
+      case LoadStatus.initial:
+      case LoadStatus.loading:
+        return SizedBox(
+          height: expanded ? 210 : 190,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: AppTheme.accent.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(28),
+            ),
+          ),
+        );
+      case LoadStatus.error:
+      case LoadStatus.empty:
+        // Pesan error atau kosong ditampilkan di bagian Rekomendasi.
+        return const SizedBox.shrink();
+      case LoadStatus.success:
+        final meal = provider.recommendations.first;
+        return FeaturedRecipeBanner(
+          meal: meal,
+          large: expanded,
+          onTap: () => _openDetail(context, meal),
+        );
+    }
+  }
+
   Widget _buildCategories(BuildContext context, RecipeProvider provider) {
     switch (provider.categoriesStatus) {
       case LoadStatus.initial:
       case LoadStatus.loading:
         return const SizedBox(
-          height: 40,
+          height: 44,
           child: Center(
             child: SizedBox(
               width: 24,
@@ -115,16 +168,16 @@ class HomeScreen extends StatelessWidget {
         return const Text('Belum ada kategori.');
       case LoadStatus.success:
         return SizedBox(
-          height: 40,
+          height: 44,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: provider.categories.length,
             separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final category = provider.categories[index];
-              return ActionChip(
-                label: Text(category.name),
-                onPressed: () {
+              return CategoryChip(
+                label: category.name,
+                onTap: () {
                   provider.selectCategory(category.name);
                   _openList(context);
                 },
@@ -138,7 +191,6 @@ class HomeScreen extends StatelessWidget {
   Widget _buildRecommendations(
     BuildContext context,
     RecipeProvider provider,
-    bool expanded,
     int columns,
   ) {
     switch (provider.recommendationsStatus) {
@@ -157,58 +209,56 @@ class HomeScreen extends StatelessWidget {
           message: 'Belum ada rekomendasi.',
         );
       case LoadStatus.success:
-        return expanded
-            ? _buildRecommendationGrid(
-                context,
-                provider.recommendations,
-                columns,
-              )
-            : _buildRecommendationRow(context, provider.recommendations);
+        // Resep pertama sudah tampil di banner.
+        final meals = provider.recommendations.skip(1).toList();
+        if (meals.isEmpty) return const SizedBox.shrink();
+        return _buildGrid(context, meals, columns);
     }
   }
 
-  /// Layout compact: daftar geser horizontal.
-  Widget _buildRecommendationRow(BuildContext context, List<Meal> meals) {
-    return SizedBox(
-      height: 230,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: meals.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final meal = meals[index];
-          return SizedBox(
-            width: 170,
-            child: RecipeCard(
-              meal: meal,
-              onTap: () => _openDetail(context, meal),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Layout expanded: grid di dalam ListView induk (tidak scroll sendiri).
-  Widget _buildRecommendationGrid(
-    BuildContext context,
-    List<Meal> meals,
-    int columns,
-  ) {
+  /// Grid di dalam ListView induk (tidak scroll sendiri).
+  Widget _buildGrid(BuildContext context, List<Meal> meals, int columns) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: columns,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.85,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 0.78,
       ),
       itemCount: meals.length,
       itemBuilder: (context, index) {
         final meal = meals[index];
         return RecipeCard(meal: meal, onTap: () => _openDetail(context, meal));
       },
+    );
+  }
+}
+
+/// Judul AppBar: lencana ikon dan nama aplikasi.
+class _BrandTitle extends StatelessWidget {
+  const _BrandTitle();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppTheme.primary,
+            shape: BoxShape.circle,
+          ),
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: Icon(Icons.restaurant_menu, size: 18, color: Colors.white),
+          ),
+        ),
+        SizedBox(width: 10),
+        Text('ResepKu'),
+      ],
     );
   }
 }

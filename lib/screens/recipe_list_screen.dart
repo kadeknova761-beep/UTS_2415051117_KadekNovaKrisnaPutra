@@ -5,6 +5,7 @@ import '../core/breakpoints.dart';
 import '../core/load_status.dart';
 import '../models/meal.dart';
 import '../providers/recipe_provider.dart';
+import '../widgets/category_chip.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/state_view.dart';
 import 'recipe_detail_screen.dart';
@@ -23,6 +24,8 @@ class RecipeListScreen extends StatefulWidget {
 }
 
 class _RecipeListScreenState extends State<RecipeListScreen> {
+  static const double _maxContentWidth = 1100;
+
   late final RecipeProvider _provider;
   final TextEditingController _searchController = TextEditingController();
 
@@ -65,55 +68,64 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                _provider.onSearchChanged(value);
-              },
-              decoration: InputDecoration(
-                hintText: 'Cari resep...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: provider.query.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _provider.clearFilters();
-                        },
-                      ),
-              ),
-            ),
-          ),
-          if (provider.categories.isNotEmpty)
-            SizedBox(
-              height: 56,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    _provider.onSearchChanged(value);
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Cari resep...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: provider.query.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              _provider.clearFilters();
+                            },
+                          ),
+                  ),
                 ),
-                itemCount: provider.categories.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final category = provider.categories[index];
-                  final selected = provider.selectedCategory == category.name;
-                  return ChoiceChip(
-                    label: Text(category.name),
-                    selected: selected,
-                    onSelected: (_) {
-                      _provider.selectCategory(selected ? null : category.name);
-                    },
-                  );
-                },
               ),
-            ),
-          Expanded(child: _buildBody(provider)),
-        ],
+              if (provider.categories.isNotEmpty)
+                SizedBox(
+                  height: 62,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 9,
+                    ),
+                    itemCount: provider.categories.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      final category = provider.categories[index];
+                      final selected =
+                          provider.selectedCategory == category.name;
+                      return CategoryChip(
+                        label: category.name,
+                        selected: selected,
+                        onTap: () {
+                          _provider.selectCategory(
+                            selected ? null : category.name,
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              Expanded(child: _buildBody(provider)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -145,11 +157,11 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
         final columns = Breakpoints.gridColumns(constraints.maxWidth);
 
         return GridView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+            crossAxisSpacing: 14,
+            mainAxisSpacing: 14,
             childAspectRatio: 0.78,
           ),
           itemCount: meals.length,
