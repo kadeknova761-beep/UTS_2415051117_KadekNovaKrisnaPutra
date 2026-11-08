@@ -1,16 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-/// Profil mahasiswa dan informasi aplikasi.
+import '../providers/profile_provider.dart';
+import '../widgets/state_view.dart';
+import 'profile_setup_screen.dart';
+
+/// Profil pengguna (dari penyimpanan lokal) dan informasi aplikasi.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  static const String _name = 'Kadek Nova Krisna Putra';
-  static const String _nim = '2415051117';
-  static const String _className = 'PTI 5C';
+  void _openEdit(BuildContext context) {
+    final profile = context.read<ProfileProvider>().profile;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ProfileSetupScreen(initial: profile)),
+    );
+  }
+
+  Future<void> _confirmSignOut(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final provider = context.read<ProfileProvider>();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Keluar dari profil?'),
+        content: const Text(
+          'Profil di perangkat ini akan dihapus dan kamu perlu mengisinya '
+          'lagi. Resep di koleksimu tidak ikut dihapus.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    // Jika berhasil, ProfileGate otomatis kembali ke layar pengisian profil.
+    final error = await provider.clear();
+    if (error != null) {
+      messenger.showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final profile = context.watch<ProfileProvider>().profile;
+
+    if (profile == null) {
+      return const Scaffold(
+        body: StateView(
+          type: StateViewType.empty,
+          message: 'Profil belum diisi.',
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profil')),
@@ -27,7 +78,7 @@ class ProfileScreen extends StatelessWidget {
                   radius: 48,
                   backgroundColor: theme.colorScheme.primaryContainer,
                   child: Text(
-                    'KN',
+                    profile.initials,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       color: theme.colorScheme.onPrimaryContainer,
                     ),
@@ -36,27 +87,52 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                _name,
+                profile.name,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleLarge,
               ),
               const SizedBox(height: 24),
-              const Card(
+              Card(
                 child: Column(
                   children: [
                     ListTile(
-                      leading: Icon(Icons.badge_outlined),
-                      title: Text('NIM'),
-                      subtitle: Text(_nim),
+                      leading: const Icon(Icons.badge_outlined),
+                      title: const Text('NIM'),
+                      subtitle: Text(profile.nim),
                     ),
-                    Divider(height: 1),
+                    const Divider(height: 1),
                     ListTile(
-                      leading: Icon(Icons.school_outlined),
-                      title: Text('Kelas'),
-                      subtitle: Text(_className),
+                      leading: const Icon(Icons.school_outlined),
+                      title: const Text('Kelas'),
+                      subtitle: Text(
+                        profile.className.isEmpty ? '-' : profile.className,
+                      ),
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _openEdit(context),
+                      icon: const Icon(Icons.edit_outlined),
+                      label: const Text('Ubah profil'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: () => _confirmSignOut(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: theme.colorScheme.error,
+                      ),
+                      icon: const Icon(Icons.logout),
+                      label: const Text('Keluar'),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               const Card(

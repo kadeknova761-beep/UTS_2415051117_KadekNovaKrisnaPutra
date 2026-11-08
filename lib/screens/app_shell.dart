@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_theme.dart';
 import '../core/breakpoints.dart';
+import '../widgets/floating_nav_bar.dart';
 import 'collection_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
@@ -8,8 +10,8 @@ import 'recipe_list_screen.dart';
 
 /// Kerangka navigasi utama.
 ///
-/// Compact : NavigationBar di bawah.
-/// Expanded: NavigationRail di kiri (diperluas di layar wide).
+/// Compact : FloatingNavBar (pil melayang) di bawah.
+/// Expanded: NavigationRail melayang di kiri (diperluas di layar wide).
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -21,11 +23,11 @@ class _AppShellState extends State<AppShell> {
   // State lokal tampilan (tab aktif), bukan shared state aplikasi.
   int _index = 0;
 
-  static const List<_Destination> _destinations = [
-    _Destination('Beranda', Icons.home_outlined, Icons.home),
-    _Destination('Cari', Icons.search, Icons.search),
-    _Destination('Koleksi', Icons.bookmark_border, Icons.bookmark),
-    _Destination('Profil', Icons.person_outline, Icons.person),
+  static const List<NavItem> _destinations = [
+    NavItem('Beranda', Icons.home_outlined, Icons.home),
+    NavItem('Cari', Icons.search, Icons.search),
+    NavItem('Koleksi', Icons.bookmark_border, Icons.bookmark),
+    NavItem('Profil', Icons.person_outline, Icons.person),
   ];
 
   static const List<Widget> _pages = [
@@ -48,17 +50,10 @@ class _AppShellState extends State<AppShell> {
         if (!Breakpoints.isExpanded(width)) {
           return Scaffold(
             body: body,
-            bottomNavigationBar: NavigationBar(
+            bottomNavigationBar: FloatingNavBar(
+              items: _destinations,
               selectedIndex: _index,
               onDestinationSelected: _select,
-              destinations: [
-                for (final item in _destinations)
-                  NavigationDestination(
-                    icon: Icon(item.icon),
-                    selectedIcon: Icon(item.selectedIcon),
-                    label: item.label,
-                  ),
-              ],
             ),
           );
         }
@@ -67,22 +62,29 @@ class _AppShellState extends State<AppShell> {
 
         return Scaffold(
           body: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              NavigationRail(
-                selectedIndex: _index,
-                onDestinationSelected: _select,
-                extended: extended,
-                labelType: extended ? null : NavigationRailLabelType.all,
-                destinations: [
-                  for (final item in _destinations)
-                    NavigationRailDestination(
-                      icon: Icon(item.icon),
-                      selectedIcon: Icon(item.selectedIcon),
-                      label: Text(item.label),
-                    ),
-                ],
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: NavigationRail(
+                    selectedIndex: _index,
+                    onDestinationSelected: _select,
+                    extended: extended,
+                    labelType: extended ? null : NavigationRailLabelType.all,
+                    leading: const _RailLogo(),
+                    destinations: [
+                      for (final item in _destinations)
+                        NavigationRailDestination(
+                          icon: Icon(item.icon),
+                          selectedIcon: Icon(item.selectedIcon),
+                          label: Text(item.label),
+                        ),
+                    ],
+                  ),
+                ),
               ),
-              const VerticalDivider(width: 1),
               Expanded(child: body),
             ],
           ),
@@ -92,10 +94,19 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
-class _Destination {
-  final String label;
-  final IconData icon;
-  final IconData selectedIcon;
+/// Lencana ikon di bagian atas rail.
+class _RailLogo extends StatelessWidget {
+  const _RailLogo();
 
-  const _Destination(this.label, this.icon, this.selectedIcon);
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 16),
+      child: CircleAvatar(
+        radius: 22,
+        backgroundColor: Colors.white,
+        child: Icon(Icons.restaurant_menu, color: AppTheme.primary),
+      ),
+    );
+  }
 }

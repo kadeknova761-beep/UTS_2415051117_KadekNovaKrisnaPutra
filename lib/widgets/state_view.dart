@@ -8,17 +8,28 @@ class StateView extends StatelessWidget {
   final String? message;
   final VoidCallback? onRetry;
 
-  const StateView({super.key, required this.type, this.message, this.onRetry});
+  /// Mengganti ikon bawaan untuk state error atau empty.
+  final IconData? icon;
+
+  const StateView({
+    super.key,
+    required this.type,
+    this.message,
+    this.onRetry,
+    this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
-    final IconData? icon = switch (type) {
+    final IconData? defaultIcon = switch (type) {
       StateViewType.loading => null,
       StateViewType.error => Icons.cloud_off,
       StateViewType.empty => Icons.search_off,
     };
+    final iconData = icon ?? defaultIcon;
 
     final String text =
         message ??
@@ -34,10 +45,18 @@ class StateView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon == null)
+            if (type == StateViewType.loading || iconData == null)
               const CircularProgressIndicator()
             else
-              Icon(icon, size: 56, color: theme.colorScheme.outline),
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: scheme.primary.withValues(alpha: 0.08),
+                ),
+                child: Icon(iconData, size: 40, color: scheme.primary),
+              ),
             const SizedBox(height: 16),
             Text(
               text,

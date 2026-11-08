@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:resepku/main.dart';
 import 'package:resepku/repositories/fake_meal_repository.dart';
 import 'package:resepku/screens/recipe_detail_screen.dart';
+import 'package:resepku/widgets/floating_nav_bar.dart';
 
 const _repository = FakeMealRepository(delay: Duration.zero);
 
@@ -16,24 +17,24 @@ void main() {
 
   Finder navLabel(String label) {
     return find.descendant(
-      of: find.byType(NavigationBar),
+      of: find.byType(FloatingNavBar),
       matching: find.text(label),
     );
   }
 
-  testWidgets('compact memakai NavigationBar, wide memakai NavigationRail', (
+  testWidgets('compact memakai FloatingNavBar, wide memakai NavigationRail', (
     tester,
   ) async {
     await setScreen(tester, 400);
     await tester.pumpWidget(const ResepKuApp(repository: _repository));
     await tester.pumpAndSettle();
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(FloatingNavBar), findsOneWidget);
     expect(find.byType(NavigationRail), findsNothing);
 
     await setScreen(tester, 1200);
     await tester.pumpWidget(const ResepKuApp(repository: _repository));
     await tester.pumpAndSettle();
-    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byType(FloatingNavBar), findsNothing);
     expect(find.byType(NavigationRail), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
