@@ -30,14 +30,17 @@ class _AppShellState extends State<AppShell> {
     NavItem('Profil', Icons.person_outline, Icons.person),
   ];
 
-  static const List<Widget> _pages = [
-    HomeScreen(),
-    RecipeListScreen(title: 'Cari resep'),
-    CollectionScreen(),
-    ProfileScreen(),
-  ];
-
   void _select(int index) => setState(() => _index = index);
+
+  List<Widget> _buildPages() {
+    return [
+      const HomeScreen(),
+      const RecipeListScreen(title: 'Cari resep'),
+      // Tombol "Jelajahi resep" pada koleksi kosong membuka tab Cari.
+      CollectionScreen(onExplore: () => _select(1)),
+      const ProfileScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +48,7 @@ class _AppShellState extends State<AppShell> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         // IndexedStack menjaga posisi scroll tiap tab saat berpindah.
-        final body = IndexedStack(index: _index, children: _pages);
+        final body = IndexedStack(index: _index, children: _buildPages());
 
         if (!Breakpoints.isExpanded(width)) {
           return Scaffold(
