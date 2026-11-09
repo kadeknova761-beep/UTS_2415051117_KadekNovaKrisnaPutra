@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../core/app_theme.dart';
 
-/// Lencana logo bulat putih (reusable widget #8).
+/// Lencana logo bulat putih (reusable widget #8) berisi logo ResepKu.
 ///
-/// Dipakai di splash dan layar pengisian profil. Saat logo ResepKu sudah
-/// jadi, cukup ganti isi [build] di sini.
+/// Dipakai di splash dan layar pengisian profil.
 class AppLogoBadge extends StatelessWidget {
   final double size;
 
@@ -16,6 +15,7 @@ class AppLogoBadge extends StatelessWidget {
     return Container(
       width: size,
       height: size,
+      padding: EdgeInsets.all(size * 0.14),
       decoration: const BoxDecoration(
         color: Colors.white,
         shape: BoxShape.circle,
@@ -27,10 +27,15 @@ class AppLogoBadge extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(
-        Icons.restaurant_menu,
-        size: size * 0.5,
-        color: AppTheme.primary,
+      child: Image.asset(
+        'assets/images/logo_mark.png',
+        fit: BoxFit.contain,
+        // Cadangan bila aset belum terdaftar atau gagal dimuat.
+        errorBuilder: (_, _, _) => Icon(
+          Icons.restaurant_menu,
+          size: size * 0.5,
+          color: AppTheme.primary,
+        ),
       ),
     );
   }
