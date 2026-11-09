@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_theme.dart';
 import '../core/profile_validators.dart';
 import '../models/user_profile.dart';
 import '../providers/profile_provider.dart';
+import '../widgets/app_logo_badge.dart';
 
 /// Form profil. Dipakai saat pertama kali membuka aplikasi (initial null)
 /// dan saat mengubah profil dari tab Profil (initial berisi profil lama).
@@ -78,97 +80,146 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    if (_isEditing) return _buildEditing();
+    return _buildWelcome(context);
+  }
 
+  /// Mengubah profil: AppBar polos dan form di tengah.
+  Widget _buildEditing() {
     return Scaffold(
-      appBar: _isEditing ? AppBar(title: const Text('Ubah profil')) : null,
+      appBar: AppBar(title: const Text('Ubah profil')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 480),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (!_isEditing) ...[
-                      Icon(
-                        Icons.restaurant_menu,
-                        size: 56,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Selamat datang di ResepKu',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Isi profilmu untuk mulai. '
-                        'Data ini hanya disimpan di perangkat ini.',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                    TextFormField(
-                      controller: _nameController,
-                      textInputAction: TextInputAction.next,
-                      textCapitalization: TextCapitalization.words,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      validator: ProfileValidators.name,
-                      decoration: const InputDecoration(
-                        labelText: 'Nama lengkap',
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
+              child: _buildForm(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Pertama kali dibuka: latar marun, logo, dan form di kartu putih.
+  Widget _buildWelcome(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: AppTheme.primary,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const AppLogoBadge(size: 88),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Selamat datang di ResepKu',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _nimController,
-                      textInputAction: TextInputAction.next,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      validator: ProfileValidators.nim,
-                      decoration: const InputDecoration(
-                        labelText: 'NIM',
-                        prefixIcon: Icon(Icons.badge_outlined),
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Isi profilmu untuk mulai. '
+                    'Data ini hanya disimpan di perangkat ini.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.85),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _classController,
-                      textInputAction: TextInputAction.done,
-                      textCapitalization: TextCapitalization.characters,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      validator: ProfileValidators.className,
-                      onFieldSubmitted: (_) => _submit(),
-                      decoration: const InputDecoration(
-                        labelText: 'Kelas (opsional)',
-                        prefixIcon: Icon(Icons.school_outlined),
-                      ),
+                  ),
+                  const SizedBox(height: 28),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x33000000),
+                          blurRadius: 24,
+                          offset: Offset(0, 10),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: _saving ? null : _submit,
-                      child: _saving
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(_isEditing ? 'Simpan' : 'Mulai'),
-                    ),
-                  ],
-                ),
+                    child: _buildForm(),
+                  ),
+                ],
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildForm() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextFormField(
+            controller: _nameController,
+            textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.words,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            validator: ProfileValidators.name,
+            decoration: const InputDecoration(
+              labelText: 'Nama lengkap',
+              prefixIcon: Icon(Icons.person_outline),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _nimController,
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            validator: ProfileValidators.nim,
+            decoration: const InputDecoration(
+              labelText: 'NIM',
+              prefixIcon: Icon(Icons.badge_outlined),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _classController,
+            textInputAction: TextInputAction.done,
+            textCapitalization: TextCapitalization.characters,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            validator: ProfileValidators.className,
+            onFieldSubmitted: (_) => _submit(),
+            decoration: const InputDecoration(
+              labelText: 'Kelas (opsional)',
+              prefixIcon: Icon(Icons.school_outlined),
+            ),
+          ),
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: _saving ? null : _submit,
+            child: _saving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(_isEditing ? 'Simpan' : 'Mulai'),
+          ),
+        ],
       ),
     );
   }

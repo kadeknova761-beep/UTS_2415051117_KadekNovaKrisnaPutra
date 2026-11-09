@@ -6,8 +6,10 @@ import '../providers/profile_provider.dart';
 import '../widgets/state_view.dart';
 import 'app_shell.dart';
 import 'profile_setup_screen.dart';
+import 'splash_screen.dart';
 
-/// Penentu layar awal: pengisian profil bila belum ada, aplikasi bila ada.
+/// Penentu layar awal: splash saat membaca profil, pengisian profil bila
+/// belum ada, aplikasi bila sudah ada.
 class ProfileGate extends StatelessWidget {
   const ProfileGate({super.key});
 
@@ -18,7 +20,7 @@ class ProfileGate extends StatelessWidget {
     switch (provider.status) {
       case LoadStatus.initial:
       case LoadStatus.loading:
-        return const Scaffold(body: StateView(type: StateViewType.loading));
+        return const SplashScreen();
       case LoadStatus.error:
         return Scaffold(
           body: StateView(
