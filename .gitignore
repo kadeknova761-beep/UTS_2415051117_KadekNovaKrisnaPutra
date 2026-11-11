@@ -53,3 +53,5 @@ secrets.json
 
 # Widget Preview related
 .widget_preview/
+
+!.env.example
