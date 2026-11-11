@@ -211,3 +211,8 @@ Tutup dan buka kembali terminal, lalu jalankan `flutter clean` dan `flutter pub 
 
 - Profil (nama, NIM, kelas) disimpan hanya di perangkat dan bukan sistem login. Koleksi terikat ke identitas anonim di perangkat tersebut; menghapus data aplikasi atau memasang ulang akan membuat koleksi baru.
 - Lisensi font: Poppins, SIL Open Font License 1.1 (`assets/fonts/OFL.txt`).
+## Screenshot Tambahan
+
+| Sambutan | Profil | Hasil pencarian |
+|---|---|---|
+| ![Sambutan](docs/screenshots/10_welcome.png) | ![Profil](docs/screenshots/11_profile.png) | ![Pencarian](docs/screenshots/12_search_result.png) |
